@@ -31,7 +31,7 @@ class Event:
 
 
 class MIDITokenExtractor:
-    def __init__(self, midi_path: str, voc_dict: dict, apply_pedal: bool = True):
+    def __init__(self, midi_path: str, voc_dict: dict, apply_pedal: bool = False):
         self.pm = pm.PrettyMIDI(midi_path)
         if apply_pedal:
             self.pm_apply_pedal(self.pm)
