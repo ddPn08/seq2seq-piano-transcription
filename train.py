@@ -23,7 +23,7 @@ class Maestro(AMTDatasetBase):
         apply_pedal=False,
         whole_song=False,
     ):
-        data_path = "../../../Data2/maestro-v3.0.0/"
+        data_path = "/root/maestro-v3.0.0/"
         df_metadata = pd.read_csv(os.path.join(data_path, "maestro-v3.0.0.csv"))
         flist_audio = []
         flist_midi = []
@@ -120,10 +120,10 @@ class LitTranscriber(LightningModule):
         return data.DataLoader(
             dataset=dset,
             collate_fn=dset.collate_batch,
-            batch_size=4,
+            batch_size=64,
             shuffle=True,
             pin_memory=True,
-            num_workers=4,
+            num_workers=8,
         )
 
     def test_dataloader(self):
@@ -165,7 +165,6 @@ def main():
 
     trainer = Trainer(
         logger=logger,
-        enable_checkpointing=True,
         accelerator="gpu",
         devices="0,",
         max_epochs=10000,
