@@ -1,3 +1,4 @@
+lightning
 pretty_midi
 mir_eval
 transformers

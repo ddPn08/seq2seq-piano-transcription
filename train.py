@@ -1,10 +1,11 @@
 import os
 
 import pandas as pd
-import pytorch_lightning as pl
 import torch
 import torch.utils.data as data
-from pytorch_lightning.loggers import WandbLogger
+from lightning.pytorch import LightningModule, Trainer
+from lightning.pytorch.callbacks import ModelCheckpoint
+from lightning.pytorch.loggers import WandbLogger
 
 from modules.constants import SAMPLING_RATE
 from modules.dataset import AMTDatasetBase
@@ -49,7 +50,7 @@ class Maestro(AMTDatasetBase):
         self.list_title = list_title
 
 
-class LitTranscriber(pl.LightningModule):
+class LitTranscriber(LightningModule):
     def __init__(
         self,
         transcriber_args: dict,
@@ -155,13 +156,24 @@ def main():
     lightning_module = LitTranscriber(transcriber_args=args, lr=1e-4, lr_decay=0.99)
 
     logger = WandbLogger(project="seq2seq-piano-transcription", name="test-01")
+    checkpoint = ModelCheckpoint(
+        dirpath="output/checkpoints",
+        filename="{epoch}",
+        every_n_epochs=50,
+        save_on_train_epoch_end=True,
+    )
 
-    trainer = pl.Trainer(
+    trainer = Trainer(
         logger=logger,
         enable_checkpointing=True,
         accelerator="gpu",
         devices="0,",
         max_epochs=10000,
+        callbacks=[checkpoint],
     )
 
     trainer.fit(lightning_module)
+
+
+if __name__ == "__main__":
+    main()
