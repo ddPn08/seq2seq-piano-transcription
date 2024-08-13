@@ -13,6 +13,8 @@ from modules.evaluate import evaluate_midi
 from modules.tokenizer import token_seg_list_to_midi, voc_single_track
 from modules.transcriber import Seq2SeqTranscriber, unpack_sequence
 
+torch.set_float32_matmul_precision("medium")
+
 
 class Maestro(AMTDatasetBase):
     def __init__(
@@ -37,8 +39,6 @@ class Maestro(AMTDatasetBase):
                 flist_midi.append(f_midi)
                 list_title.append(df_metadata["canonical_title"][row])
 
-
-
         if n_files > 0:
             flist_audio = flist_audio[:n_files]
             flist_midi = flist_midi[:n_files]
@@ -49,7 +49,7 @@ class Maestro(AMTDatasetBase):
             voc_dict=voc_single_track,
             apply_pedal=apply_pedal,
             whole_song=whole_song,
-            cache_in_memory=True
+            cache_in_memory=True,
         )
         self.list_title = list_title
 
@@ -127,7 +127,7 @@ class LitTranscriber(LightningModule):
             batch_size=64,
             shuffle=True,
             pin_memory=True,
-            num_workers=8,
+            num_workers=16,
             persistent_workers=True,
         )
 
@@ -173,6 +173,7 @@ def main():
         accelerator="gpu",
         devices="0,",
         max_epochs=10000,
+        log_every_n_steps=16,
         callbacks=[checkpoint],
     )
 
