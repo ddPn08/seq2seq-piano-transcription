@@ -36,6 +36,9 @@ class Maestro(AMTDatasetBase):
                 flist_audio.append(f_audio)
                 flist_midi.append(f_midi)
                 list_title.append(df_metadata["canonical_title"][row])
+
+
+
         if n_files > 0:
             flist_audio = flist_audio[:n_files]
             flist_midi = flist_midi[:n_files]
@@ -46,6 +49,7 @@ class Maestro(AMTDatasetBase):
             voc_dict=voc_single_track,
             apply_pedal=apply_pedal,
             whole_song=whole_song,
+            cache_in_memory=True
         )
         self.list_title = list_title
 
@@ -124,6 +128,7 @@ class LitTranscriber(LightningModule):
             shuffle=True,
             pin_memory=True,
             num_workers=8,
+            persistent_workers=True,
         )
 
     def test_dataloader(self):
