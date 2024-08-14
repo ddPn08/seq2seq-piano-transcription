@@ -84,7 +84,7 @@ class AMTDatasetBase(data.Dataset):
         segment_tokens = torch.from_numpy(segment_tokens).long()
         if self.cache_in_memory:
             y, _ = self.audio_list[index]
-            y_segment = y[:, segment_start:segment_end]
+            y_segment = y[segment_start:segment_end]
         else:
             y_segment, _ = torchaudio.load(
                 self.audio_filelist[index],
