@@ -50,6 +50,7 @@ class Maestro(AMTDatasetBase):
             apply_pedal=apply_pedal,
             whole_song=whole_song,
             cache_in_memory=True,
+            cache_dir="./cache/maestro-v3.0.0",
         )
         self.list_title = list_title
 

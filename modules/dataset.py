@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import torch
 import torch.utils.data as data
@@ -23,6 +25,7 @@ class AMTDatasetBase(data.Dataset):
         apply_pedal=False,
         whole_song=False,
         cache_in_memory=False,
+        cache_dir=None,
     ):
         super().__init__()
         self.midi_filelist = flist_midi
@@ -37,8 +40,16 @@ class AMTDatasetBase(data.Dataset):
 
         self.cache_in_memory = cache_in_memory
         if cache_in_memory:
+            if cache_dir is not None:
+                os.makedirs(cache_dir, exist_ok=True)
             self.audio_list = []
             for f in tqdm.tqdm(flist_audio, desc="cache audio"):
+                if cache_dir is not None:
+                    cache_path = os.path.join(cache_dir, os.path.basename(f) + ".pt")
+                    if os.path.exists(cache_path):
+                        wav = torch.load(cache_path)
+                        self.audio_list.append(wav)
+                        continue
                 wav, sr = torchaudio.load(f)
                 wav = wav.mean(0)
                 if sr != sample_rate:
@@ -50,6 +61,9 @@ class AMTDatasetBase(data.Dataset):
                     )
 
                 self.audio_list.append(wav)
+                if cache_dir is not None:
+                    cache_path = os.path.join(cache_dir, os.path.basename(f) + ".pt")
+                    torch.save(wav, cache_path)
 
         self.audio_metalist = [torchaudio.info(f) for f in flist_audio]
 
