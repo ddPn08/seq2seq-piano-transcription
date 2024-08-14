@@ -92,14 +92,17 @@ class AMTDatasetBase(data.Dataset):
         else:
             segment_start = start_pos
         segment_end = segment_start + SEGMENT_N_FRAMES
-        segment_start_sample = round(segment_start * FRAME_STEP_SIZE_SEC * sample_rate)
 
         segment_tokens = midi_item.get_segment_tokens(segment_start, segment_end)
         segment_tokens = torch.from_numpy(segment_tokens).long()
         if self.cache_in_memory:
             y = self.audio_list[index]
-            y_segment = y[segment_start:segment_end]
+            segment_start_sample = round(segment_start * FRAME_STEP_SIZE_SEC * self.sample_rate)
+            y_segment = y[
+                segment_start_sample : segment_start_sample + round(AUDIO_SEGMENT_SEC * self.sample_rate)
+            ]
         else:
+            segment_start_sample = round(segment_start * FRAME_STEP_SIZE_SEC * sample_rate)
             y_segment, _ = torchaudio.load(
                 self.audio_filelist[index],
                 frame_offset=segment_start_sample,
