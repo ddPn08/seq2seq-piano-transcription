@@ -37,11 +37,20 @@ class AMTDatasetBase(data.Dataset):
 
         self.cache_in_memory = cache_in_memory
         if cache_in_memory:
-            self.audio_list = [
-                torchaudio.load(f, normalize=True)
-                for f in tqdm.tqdm(flist_audio, desc="cache audio")
-            ]
-        
+            self.audio_list = []
+            for f in tqdm.tqdm(flist_audio, desc="cache audio"):
+                wav, sr = torchaudio.load(f)
+                wav = wav.mean(0)
+                if sr != sample_rate:
+                    wav = torchaudio.functional.resample(
+                        wav,
+                        sr,
+                        sample_rate,
+                        resampling_method="sinc_interp_kaiser",
+                    )
+
+                self.audio_list.append(wav)
+
         self.audio_metalist = [torchaudio.info(f) for f in flist_audio]
 
     def __len__(self):
@@ -75,21 +84,22 @@ class AMTDatasetBase(data.Dataset):
         segment_tokens = torch.from_numpy(segment_tokens).long()
         if self.cache_in_memory:
             y, _ = self.audio_list[index]
-            y_segment = y[:, segment_start_sample : segment_start_sample + num_frames]
+            y_segment = y[:, segment_start:segment_end]
         else:
             y_segment, _ = torchaudio.load(
                 self.audio_filelist[index],
                 frame_offset=segment_start_sample,
                 num_frames=round(AUDIO_SEGMENT_SEC * sample_rate),
             )
-        y_segment = y_segment.mean(0)
-        if sample_rate != self.sample_rate:
-            y_segment = torchaudio.functional.resample(
-                y_segment,
-                sample_rate,
-                self.sample_rate,
-                resampling_method="sinc_interp_kaiser",
-            )
+            y_segment = y_segment.mean(0)
+            if sample_rate != self.sample_rate:
+                y_segment = torchaudio.functional.resample(
+                    y_segment,
+                    sample_rate,
+                    self.sample_rate,
+                    resampling_method="sinc_interp_kaiser",
+                )
+
         return y_segment, segment_tokens
 
     def getitem_wholesong(self, index):
